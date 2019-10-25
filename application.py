@@ -252,7 +252,7 @@ def stats():
     rowsAll = Score.query.all()
 
     # Default value for average score
-    if len(rows) == 0:
+    if rows == None:
         avgScore = 0
 
     else:
