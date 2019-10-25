@@ -149,7 +149,7 @@ def login():
         row = User.query.filter_by(username=request.form.get("username")).first()
 
         # Ensure username exists and password is correct
-        if len(row) != 1 or not check_password_hash(row.pwd_hash, request.form.get("password")):
+        if row == None or not check_password_hash(row.pwd_hash, request.form.get("password")):
             return apology("Invalid username or password")
 
         # Remember which user has logged in
@@ -214,7 +214,7 @@ def register():
             return apology("Passwords do not match")
 
         # Check if username is already taken
-        elif not User.query.filter_by(username=request.form.get("username")).first() == None:
+        elif User.query.filter_by(username=request.form.get("username")).first() is not None:
             return apology("Username already taken")
 
         else:
