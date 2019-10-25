@@ -1,6 +1,7 @@
 import operator
 import os
 from flask import Flask, flash, redirect, render_template, request, session
+from flask_migrate import Migrate
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
 from functools import wraps
@@ -31,8 +32,9 @@ Session(app)
 # Configure app to use PostgreSQL database
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["HEROKU_POSTGRESQL_CRIMSON_URL"]
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://ygptyhmliybvtq:abf67ebf32fcae2c0ac8925e026fd47c1df44294b9a21f5a1bcf18d97bdb1f6e@ec2-176-34-183-20.eu-west-1.compute.amazonaws.com:5432/de9hiv1bu4a0kt"
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Create classes for PostgreSQL database tables
 class User(db.Model):

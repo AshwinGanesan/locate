@@ -1,4 +1,6 @@
+alembic
 Flask
+Flask-Migrate
 Flask-Session
 Flask-SQLAlchemy
 gunicorn
