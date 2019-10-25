@@ -31,7 +31,7 @@ Session(app)
 # Configure app to use PostgreSQL database
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["HEROKU_POSTGRESQL_CRIMSON_URL"]
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["postgres://lniutdvgubmcli:222620ded7a8e688a8433e2bad4f57c81b8106fcb4a100c744dd74515a5cdd9d@ec2-54-246-92-116.eu-west-1.compute.amazonaws.com:5432/d13vh8n98tqc3l"]
 db = SQLAlchemy(app)
 
 # Create classes for PostgreSQL database tables
