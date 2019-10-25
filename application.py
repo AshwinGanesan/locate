@@ -31,12 +31,12 @@ Session(app)
 # Configure app to use PostgreSQL database
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://lniutdvgubmcli:222620ded7a8e688a8433e2bad4f57c81b8106fcb4a100c744dd74515a5cdd9d@ec2-54-246-92-116.eu-west-1.compute.amazonaws.com:5432/d13vh8n98tqc3l"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ["HEROKU_POSTGRESQL_CRIMSON_URL"]
 db = SQLAlchemy(app)
 
 # Create classes for PostgreSQL database tables
 class User(db.Model):
-    user_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    user_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     username = db.Column(db.String(1024), nullable=False)
     pwd_hash = db.Column(db.String(1024), nullable=False)
 
@@ -45,7 +45,7 @@ class User(db.Model):
         self.pwd_hash = pwd_hash
 
 class Score(db.Model):
-    score_id = db.Column(db.Integer, primary_key=True, nullable=False)
+    score_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
     score = db.Column(db.String(1024), nullable=False)
 
