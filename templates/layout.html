@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link href="/static/favicon.ico" rel="icon">
+
+        <link href="/static/styles.css" rel="stylesheet">
+        <link href="/static/bootstrap.min.css" rel="stylesheet">
+        <link href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" rel="stylesheet">
+
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"></script>
+        <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
+        <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+        <title>Locate!: {% block title %}{% endblock %}</title>
+
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-expand-sm bg-primary navbar-dark fixed-top">
+            <a class="navbar-brand" href="/">
+                <img src="/static/logo.png" alt="Logo" style="width:110px;height:30px;">
+            </a>
+           {% if session.user_id %}
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/play">PLAY</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/leaderboard">LEADERBOARD</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/stats">STATS</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/changepwd">CHANGE PASSWORD</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">LOGOUT</a>
+                    </li>
+                </ul>
+            {% else %}
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/play">PLAY</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/leaderboard">LEADERBOARD</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">REGISTER</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">LOGIN</a>
+                    </li>
+                </ul>
+            {% endif %}
+        </nav>
+
+        <div id="container">
+
+            <div id="main">
+                {% block main %}{% endblock %}
+            </div>
+
+            <div id="footer" class="py-3 text-muted container-fluid">
+                <div class="row">
+                    <div class="col-3" align="center">Map display using <a href="https://developer.here.com/develop/javascript-api">HERE Maps API for JavaScript</a></div>
+                    <div class="col-3" align="center">Coordinate data taken from <a href="https://tools.wmflabs.org/geohack/geohack.php?pagename=Berlin&params=52_31_N_13_23_E_type:city(3292365)_region:DE">GeoHack</a></div>
+                    <div class="col-3" align="center">Logo and markers created using <a href="https://www.ucraft.com/free-logo-maker">Ucraft</a></div>
+                    <div class="col-3" align="center">Inspired by <a href="https://web.archive.org/web/20090425041125/http://www.playfish.com/?page=game_geochallenge">Geo Challenge by Playfish</a></div>
+                </div>
+            </div>
+
+        </div>
+
+    </body>
+
+</html>

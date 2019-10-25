@@ -1,0 +1,385 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Play
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid" id="placeDistanceScoreContainer">
+    <div class="row">
+        <div class="col" id="roundContainer">Round: <span id="round">0</span></div>
+        <div class="col-3" id="placeContainer">Get Ready!</div>
+        <div class="col" id="timeContainer">Time Left: <span id="time">0</span> s</div>
+        <div class="col" id="distanceContainer">Distance: <span id="distance">0</span> km</div>
+        <div class="col" id="scoreContainer">Total Score: <span id="score">0</span> km</div>
+    </div>
+</div>
+
+<div id="mapContainer"></div>
+
+<div class="modal" id="scoreModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">
+          <h4 class="modal-title">Nice work!</h4>
+          <p>Your score: <span id="modalScore"></span> km</p>
+          <a class="btn btn-primary" href="/play" role="button">Play again</a>
+          <a class="btn btn-secondary" href="/" role="button">Return home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    /* Calculate distance in km between two given coordinates
+    Source: https://stackoverflow.com/questions/365826/calculate-distance-between-2-gps-coordinates */
+
+    function degreesToRadians(degrees) {
+      return degrees * Math.PI / 180;
+    }
+
+    function distanceInKmBetweenEarthCoordinates(lat1, lon1, lat2, lon2) {
+      var earthRadiusKm = 6371;
+
+      var dLat = degreesToRadians(lat2-lat1);
+      var dLon = degreesToRadians(lon2-lon1);
+
+      lat1 = degreesToRadians(lat1);
+      lat2 = degreesToRadians(lat2);
+
+      var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return earthRadiusKm * c;
+    }
+
+    // Execute one round of game
+
+    function executeRound(map){
+
+        if (rounds < 10){
+
+            // Update round number
+
+            document.getElementById('round').innerHTML = rounds + 1;
+
+            // Pick city from list at random and display name
+
+            cityNum = Math.floor(Math.random() * (citiesNum + 1));
+            document.getElementById('placeContainer').innerHTML = cities[cityNum].name;
+        }
+        document.getElementById('time').innerHTML = 10;
+
+        // Countdown timer
+
+        var timeleft = 10;
+        var countdown = setInterval(function(){
+          document.getElementById('time').innerHTML = timeleft - 1;
+          timeleft -= 1;
+          if(timeleft <= 0){
+            clearInterval(countdown);
+          }
+        }, 1000);
+
+        // Add click event listener to map
+
+        map.addEventListener('tap', roundInnerFunction, {once: true});
+
+        // Add penalty to score for not clicking within time limit
+
+        if (!tapped && rounds != 0){
+            score += 5000;
+            document.getElementById('score').innerHTML = Math.round(score * 100) / 100;
+        }
+
+        // Reset tapped boolean and increment rounds counter
+
+        tapped = false;
+        rounds++;
+    }
+
+    function roundInnerFunction(event){
+
+        tapped = true;
+
+        // Display marker at clicked location
+
+        var coord = map.screenToGeo(event.currentPointer.viewportX, event.currentPointer.viewportY);
+        var marker = new H.map.Marker(coord, {icon: new H.map.Icon('static/marker.png')});
+        map.addObject(marker);
+
+        // Display marker at real location
+
+        var coordReal = {lat: cities[cityNum].lat, lng: cities[cityNum].lng};
+        var markerReal = new H.map.Marker(coordReal, {icon: new H.map.Icon('static/marker_real.png')});
+        map.addObject(markerReal);
+
+        // Calculate distance between markers in km, add to total score and update display
+
+        var distance = distanceInKmBetweenEarthCoordinates(coord.lat, coord.lng, coordReal.lat, coordReal.lng);
+        document.getElementById('distance').innerHTML = Math.round(distance * 100) / 100;
+        score += distance;
+        document.getElementById('score').innerHTML = Math.round(score * 100) / 100;
+
+        // Remove both markers from map
+
+        setTimeout(function(){
+            map.removeObjects(map.getObjects(marker, markerReal));
+        }, 3000);
+    }
+
+    // Initialise a platform object
+
+    var platform = new H.service.Platform({
+        'apikey' : '0WEQuJ6jQU-8EkEMrjNHE3yTvBUbTL0zTlz2xb2Z2bo'
+    });
+
+    // Obtain the default map types from the platform object
+
+    var defaultLayers = platform.createDefaultLayers();
+
+    // Instantiate (and display) a map object
+
+    var map = new H.Map(
+    document.getElementById('mapContainer'),
+    defaultLayers.raster.terrain.xbase,
+    {
+        zoom: 2.55,
+        center: {lat: 25, lng: 10},
+        pixelRatio: window.devicePixelRatio || 1
+    });
+
+    // Add a resize listener to make sure that the map occupies the whole container
+
+    window.addEventListener('resize', () => map.getViewPort().resize());
+
+    // Make the map interactive
+
+    var behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
+
+    // Disable scroll zoom and panning
+
+    behavior.disable(H.mapevents.Behavior.WHEELZOOM);
+    behavior.disable(H.mapevents.Behavior.PANNING);
+
+    // List of cities and coordinates
+
+    var cities = [
+        {name: 'Chongqing, China', lat: 29.558333, lng: 106.566667},
+        {name: 'Shanghai, China', lat: 31.228611, lng: 121.474722},
+        {name: 'Beijing, China', lat: 39.916667, lng: 116.383333},
+        {name: 'Lagos, Nigeria', lat: 6.455027, lng: 3.384082},
+        {name: 'Mumbai, India', lat: 18.975, lng: 72.825833},
+        {name: 'Dhaka, Bangladesh', lat: 23.763889, lng: 90.388889},
+        {name: 'Chengdu, China', lat: 30.657, lng: 104.066},
+        {name: 'Karachi, Pakistan', lat: 24.86, lng: 67.01},
+        {name: 'Guangzhou, China', lat: 23.132, lng: 113.266},
+        {name: 'Istanbul, Turkey', lat: 41.013611, lng: 28.955},
+        {name: 'Tokyo, Japan', lat: 35.689722, lng: 139.692222},
+        {name: 'Tianjin, China', lat: 39.133333, lng: 117.183333},
+        {name: 'Moscow, Russia', lat: 55.75, lng: 37.616667},
+        {name: 'São Paulo, Brazil', lat: -23.55, lng: -46.633333},
+        {name: 'Kinshasa, DR Congo', lat: -4.325, lng: 15.322222},
+        {name: 'Delhi, India', lat: 28.61, lng: 77.23},
+        {name: 'Lahore, Pakistan', lat: 31.549722, lng: 74.343611},
+        {name: 'Cairo, Egypt', lat: 30.033333, lng: 31.233333},
+        {name: 'Seoul, South Korea', lat: 37.566667, lng: 126.966667},
+        {name: 'Jakarta, Indonesia', lat: -6.2, lng: 106.816667},
+        {name: 'Lima, Peru', lat: -12.05, lng: -77.033333},
+        {name: 'Lima, Peru', lat: -12.05, lng: -77.033333},
+        {name: 'Mexico City, Mexico', lat: 19.433333, lng: -99.133333},
+        {name: 'London, United Kingdom', lat: 51.507222, lng: -0.1275},
+        {name: 'Bangkok, Thailand', lat: 13.7525, lng: 100.494167},
+        {name: 'Chennai, India', lat: 13.083333, lng: 80.266667},
+        {name: 'Bangalore, India', lat: 12.983333, lng: 77.583333},
+        {name: 'New York City, United States', lat: 40.661, lng: -73.944},
+        {name: 'Ho Chi Minh City, Vietnam', lat: 10.8, lng: 106.65},
+        {name: 'Tehran, Iran', lat: 35.689167, lng: 51.388889},
+        {name: 'Bogotá, Colombia', lat: 4.711111, lng: -74.072222},
+        {name: 'Baghdad, Iraq', lat: 33.333333, lng: 44.383333},
+        {name: 'Hanoi, Vietnam', lat: 21.028333, lng: 105.854167},
+        {name: 'Rio de Janeiro, Brazil', lat: -22.908333, lng: -43.196389},
+        {name: 'Santiago, Chile', lat: -33.45, lng: -70.666667},
+        {name: 'Riyadh, Saudi Arabia', lat: 24.633333, lng: 46.716667},
+        {name: 'Singapore, Singapore', lat: 1.3, lng: 103.8},
+        {name: 'Ankara, Turkey', lat: 39.933333, lng: 32.866667},
+        {name: 'Yangon, Myanmar', lat: 16.85, lng: 96.183333},
+        {name: 'Saint Petersburg, Russia', lat: 59.9375, lng: 30.308611},
+        {name: 'Sydney, Australia', lat: -33.865, lng: 151.209444},
+        {name: 'Casablanca, Morocco', lat: 33.533333, lng: -7.583333},
+        {name: 'Melbourne, Australia', lat: -37.813611, lng: 144.963056},
+        {name: 'Abidjan, Côte d\'Ivoire', lat: 5.316667, lng: -4.033333},
+        {name: 'Alexandria, Egypt', lat: 31.2, lng: 29.916667},
+        {name: 'Johannesburg, South Africa', lat: -26.204444, lng: 28.045556},
+        {name: 'Dar es Salaam, Tanzania', lat: -6.8, lng: 39.283333},
+        {name: 'Taipei, Taiwan', lat: 25.066667, lng: 121.516667},
+        {name: 'Los Angeles, United States', lat: 34.05, lng: -118.25},
+        {name: 'Cape Town, South Africa', lat: -33.925278, lng: 18.423889},
+        {name: 'Yokohama, Japan', lat: 35.444167, lng: 139.638056},
+        {name: 'Khartoum, Sudan', lat: 15.500556, lng: 32.56},
+        {name: 'Berlin, Germany', lat: 52.516667, lng: 13.388889},
+        {name: 'Busan, South Korea', lat: 35.166667, lng: 129.066667},
+        {name: 'Jeddah, Saudi Arabia', lat: 21.543333, lng: 39.172778},
+        {name: 'Durban, South Africa', lat: -29.883333, lng: 31.05},
+        {name: 'Algiers, Algeria', lat: 36.753889, lng: 3.058889},
+        {name: 'Kabul, Afghanistan', lat: 34.525278, lng: 69.178333},
+        {name: 'Pyongyang, North Korea', lat: 39.019444, lng: 125.738056},
+        {name: 'Madrid, Spain', lat: 40.383333, lng: -3.716667},
+        {name: 'Nairobi, Kenya', lat: -1.286389, lng: 36.817222},
+        {name: 'Addis Ababa, Ethiopia', lat: 9.03, lng: 38.74},
+        {name: 'Buenos Aires, Argentina', lat: -34.603333, lng: -58.381667},
+        {name: 'Toronto, Canada', lat: 43.741667, lng: -79.373333},
+        {name: 'Kiev, Ukraine', lat: 50.45, lng: 30.523333},
+        {name: 'Salvador, Brazil', lat: -12.974722, lng: -38.476667},
+        {name: 'Rome, Italy', lat: 41.883333, lng: 12.5},
+        {name: 'Dubai, United Arab Emirates', lat: 25.263056, lng: 55.297222},
+        {name: 'Luanda, Angola', lat: -8.838333, lng: 13.234444},
+        {name: 'Surabaya, Indonesia', lat: -7.265278, lng: 112.7425},
+        {name: 'Chicago, United States', lat: 41.881944, lng: -87.627778},
+        {name: 'Osaka, Japan', lat: 34.693889, lng: 135.502222},
+        {name: 'Quito, Ecuador', lat: -0.233333, lng: -78.516667},
+        {name: 'Fortaleza, Brazil', lat: -3.718333, lng: -38.542778},
+        {name: 'Managua, Nicaragua', lat: 12.136389, lng: -86.251389},
+        {name: 'Brasília, Brazil', lat: -15.793889, lng: -47.882778},
+        {name: 'Houston, United States', lat: 29.762778, lng: -95.383056},
+        {name: 'Yaoundé, Cameroon', lat: 3.866667, lng: 11.516667},
+        {name: 'Tashkent, Uzbekistan', lat: 41.3, lng: 69.266667},
+        {name: 'Phnom Penh, Cambodia', lat: 11.569444, lng: 104.921111},
+        {name: 'Paris, France', lat: 48.8567, lng: 2.3508},
+        {name: 'Ouagadougou, Burkina Faso', lat: 12.357222, lng: -1.535278},
+        {name: 'Guatemala City, Guatemala', lat: 14.613333, lng: -90.535278},
+        {name: 'Havana, Cuba', lat: 23.136667, lng: -82.358889},
+        {name: 'Accra, Ghana', lat: 5.55, lng: -0.2},
+        {name: 'Minsk, Belarus', lat: 53.9, lng: 27.566667},
+        {name: 'Caracas, Venezuela', lat: 10.480556, lng: -66.903611},
+        {name: 'Sana\'a, Yemen', lat: 15.348333, lng: 44.206389},
+        {name: 'Bucharest, Romania', lat: 44.4325, lng: 26.103889},
+        {name: 'Vienna, Austria', lat: 48.2, lng: 16.366667},
+        {name: 'Brazzaville, Congo Republic', lat: -4.267778, lng: 15.291944},
+        {name: 'Almaty, Kazakhstan', lat: 43.2775, lng: 76.895833},
+        {name: 'Hamburg, Germany', lat: 53.565278, lng: 10.001389},
+        {name: 'Manila, Philippines', lat: 14.5958, lng: 120.9772},
+        {name: 'Kuala Lumpur, Malaysia', lat: 3.147778, lng: 101.695278},
+        {name: 'Maputo, Mozambique', lat: -25.966667, lng: 32.583333},
+        {name: 'Budapest, Hungary', lat: 47.4925, lng: 19.051389},
+        {name: 'Warsaw, Poland', lat: 52.233333, lng: 21.016667},
+        {name: 'Lusaka, Zambia', lat: -15.416667, lng: 28.283333},
+        {name: 'Kathmandu, Nepal', lat: 27.766667, lng: 85.266667},
+        {name: 'Tijuana, Mexico', lat: 32.525, lng: -117.033333},
+        {name: 'Montreal, Canada', lat: 45.508889, lng: -73.561667},
+        {name: 'Harare, Zimbabwe', lat: -17.829167, lng: 31.052222},
+        {name: 'Barcelona, Spain', lat: 41.383333, lng: 2.183333},
+        {name: 'Philadelphia, United States', lat: 39.952778, lng: -75.163611},
+        {name: 'Novosibirsk, Russia', lat: 55.05, lng: 82.95},
+        {name: 'Phoenix, United States', lat: 33.45, lng: -112.066667},
+        {name: 'Kampala, Uganda', lat: 0.313611, lng: 32.581111},
+        {name: 'Guadalajara, Mexico', lat: 20.676667, lng: -103.3475},
+        {name: 'Auckland, New Zealand', lat: -36.840556, lng: 174.74},
+        {name: 'Munich, Germany', lat: 48.133333, lng: 11.566667},
+        {name: 'Kharkiv, Ukraine', lat: 50.004444, lng: 36.231389},
+        {name: 'Yekaterinburg, Russia', lat: 56.833333, lng: 60.583333},
+        {name: 'Milan, Italy', lat: 45.466944, lng: 9.19},
+        {name: 'Córdoba, Argentina', lat: -31.416667, lng: -64.183333},
+        {name: 'Montevideo, Uruguay', lat: -34.883611, lng: -56.181944},
+        {name: 'Calgary, Canada', lat: 51.05, lng: -114.066667},
+        {name: 'Rosario, Argentina', lat: -32.9575, lng: -60.639444},
+        {name: 'Brisbane, Australia', lat: -27.467778, lng: 153.028056},
+        {name: 'Belgrade, Serbia', lat: 44.816667, lng: 20.466667},
+        {name: 'Dakar, Senegal', lat: 14.692778, lng: -17.446667},
+        {name: 'Abu Dhabi, United Arab Emirates', lat: 24.466667, lng: 54.366667},
+        {name: 'Monterrey, Mexico', lat: 25.666667, lng: -100.3},
+        {name: 'Tripoli, Libya', lat: 32.887222, lng: 13.191389},
+        {name: 'T\'bilisi, Georgia', lat: 41.716667, lng: 44.783333},
+        {name: 'Birmingham, United Kingdom', lat: 52.48, lng: -1.9025},
+        {name: 'Yerevan, Armenia', lat: 40.181389, lng: 44.514444},
+        {name: 'Tunis, Tunisia', lat: 36.806389, lng: 10.181667},
+        {name: 'Nur-Sultan, Kazakhstan', lat: 51.166667, lng: 71.433333},
+        {name: 'Jerusalem, Israel', lat: 31.783333, lng: 35.216667},
+        {name: 'Lisbon, Portugal', lat: 38.725267, lng: -9.150019},
+        {name: 'Manchester, United Kingdom', lat: 53.479444, lng: -2.245278},
+        {name: 'Beirut, Lebanon', lat: 33.886944, lng: 35.513056},
+        {name: 'Brussels, Belgium', lat: 50.85, lng: 4.35},
+        {name: 'Perth, Australia', lat: -31.952222, lng: 115.858889},
+        {name: 'Damascus, Syria', lat: 33.513056, lng: 36.291944},
+        {name: 'Panama City, Panama', lat: 8.983333, lng: -79.516667},
+        {name: 'Lyon, France', lat: 45.76, lng: 4.84},
+        {name: 'Glasgow, United Kingdom', lat: 55.860916, lng: -4.251433},
+        {name: 'Stockholm, Sweden', lat: 59.329444, lng: 18.068611},
+        {name: 'Marseille, France', lat: 43.2964, lng: 5.37},
+        {name: 'Vancouver, Canada', lat: 49.25, lng: -123.1},
+        {name: 'Prague, Czechia', lat: 50.083333, lng: 14.416667},
+        {name: 'Helsinki, Finland', lat: 60.170833, lng: 24.9375},
+        {name: 'Sofia, Bulgaria', lat: 42.7, lng: 23.33},
+        {name: 'Dublin, Ireland', lat: 53.35, lng: -6.266667},
+        {name: 'Amsterdam, Netherlands', lat: 52.366667, lng: 4.9},
+        {name: 'Oslo, Norway', lat: 59.916667, lng: 10.733333},
+        {name: 'Athens, Greece', lat: 37.983972, lng: 23.727806},
+        {name: 'Zurich, Switzerland', lat: 47.366667, lng: 8.55},
+        {name: 'Copenhagen, Denmark', lat: 55.676111, lng: 12.568333},
+        {name: 'Zagreb, Croatia', lat: 45.816667, lng: 15.983333},
+        {name: 'Riga, Latvia', lat: 56.948889, lng: 24.106389},
+        {name: 'Bratislava, Slovakia', lat: 48.143889, lng: 17.109722},
+        {name: 'Wellington, New Zealand', lat: -41.288889, lng: 174.777222},
+        {name: 'Sarajevo, Bosnia and Herzegovina', lat: 43.866667, lng: 18.416667},
+        {name: 'La Paz, Bolivia', lat: -16.5, lng: -68.15},
+        {name: 'Port-au-Prince, Haiti', lat: 18.533333, lng: -72.333333},
+        {name: 'Santo Domingo, Dominican Republic', lat: 18.466667, lng: -69.95},
+        {name: 'Freetown, Sierra Leone', lat: 8.484444, lng: -13.234444},
+        {name: 'Tegucigalpa, Honduras', lat: 14.1, lng: -87.216667},
+        {name: 'Conakry, Guinea', lat: 9.509167, lng: -13.712222},
+        {name: 'Amman, Jordan', lat: 31.949722, lng: 35.932778},
+        {name: 'Vilnius, Lithuania', lat: 54.683333, lng: 25.283333},
+        {name: 'Tallinn, Estonia', lat: 59.437222, lng: 24.745278},
+        {name: 'Reykjavík, Iceland', lat: 64.133333, lng: -21.933333},
+        {name: 'Muscat, Oman', lat: 23.588889, lng: 58.408333},
+        {name: 'Ulaanbaatar, Mongolia', lat: 47.920278, lng: 106.917222}
+    ];
+
+    // Number of cities in list
+
+    const citiesNum = 168;
+
+    var rounds = 0;
+    var score = 0;
+    var cityNum = 0;
+    var tapped = false;
+
+    function startRound(){
+
+       // Start first round after 5 seconds
+
+       if (rounds == 0){
+           setTimeout(function(){
+                executeRound(map);
+                startRound();
+            }, 5000);
+       }
+
+       // Move to next round after 10 seconds until 10th round is reached
+
+       else {
+           setTimeout(function(){
+
+                // Remove event listener from previous round
+
+                map.removeEventListener('tap', roundInnerFunction, {once: true});
+
+                executeRound(map);
+                if (rounds <= 10){
+                    startRound();
+                }
+                else {
+
+                    // Display final score modal
+
+                    $('#scoreModal').modal({backdrop: 'static', keyboard: false});
+                    document.getElementById('modalScore').innerHTML = Math.round(score * 100) / 100;
+                    $.get("/logscore?score=" + (Math.round(score * 100) / 100).toString());
+                }
+            }, 10000);
+       }
+    }
+
+    startRound();
+</script>
+{% endblock %}

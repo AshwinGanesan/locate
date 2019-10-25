@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+<div id="welcomeContainer" class="jumbotron">
+    <div class="row">
+        <div class="col">
+    <h1 class="display-4">Welcome!</h1>
+    <p class="lead">Locate! is a world cities location game which tests your geography skills.</p>
+    <hr class="my-4">
+    <ul>
+        <li>Click the location of the indicated city on the world map as accurately as possible.</li>
+        <li>Your score is the distance between the clicked and actual locations of the city. The lower the score, the better!</li>
+        <li>Each game consists of 10 rounds and your final score is the total of all the rounds.</li>
+        <li>Beware&#8210; not clicking a location within the time limit results in a penalty of 5000 km!</li>
+    </ul>
+    <p class="lead">Create an account to add your scores to the leaderboard and access personalised stats&#8210; it's quick and hassle-free!</p>
+    </div>
+    <div class="col">
+    <img src="/static/screenshot.png">
+    </div>
+    </div>
+</div>
+{% endblock %}
