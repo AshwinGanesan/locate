@@ -121,8 +121,6 @@ def leaderboard():
         rowInner = User.query.filter_by(user_id=entry.user_id).first()
         entry.username = rowInner.username
 
-    # Sort list in ascending order
-
     return render_template("leaderboard.html", rows=rows)
 
 
@@ -248,6 +246,7 @@ def stats():
     rows = Score.query.filter_by(user_id=session["user_id"]).all()
     # Query database for list of all scores
     rowsAll = Score.query.order_by(Score.score).all()
+    numScores = len(rowsAll)
 
     # Default value for average score
     if len(rows) == 0:
@@ -272,7 +271,7 @@ def stats():
     # Query database for username
     rowUser = User.query.filter_by(user_id=session["user_id"]).first()
 
-    return render_template("stats.html", username=rowUser.username, highscore=highScore, rank=rank, gamesplayed=gamesPlayed, avgscore=avgScore)
+    return render_template("stats.html", username=rowUser.username, highscore=highScore, rank=rank, gamesplayed=gamesPlayed, avgscore=avgScore, numscores=numScores)
 
 
 def apology(message):
