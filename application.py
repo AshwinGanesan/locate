@@ -246,12 +246,11 @@ def stats():
 
     # Query database for list of scores of logged in user
     rows = Score.query.filter_by(user_id=session["user_id"]).all()
-
     # Query database for list of all scores
     rowsAll = Score.query.order_by(Score.score).all()
 
     # Default value for average score
-    if rows == None:
+    if len(rows) == 0:
         avgScore = 0
 
     else:
