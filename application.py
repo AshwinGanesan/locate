@@ -114,17 +114,16 @@ def leaderboard():
     """Display leaderboard"""
 
     # Query database for list of scores
-    rows = Score.query.all()
+    rows = Score.query.order_by(Score.score).all()
 
     # Replace user ids with usernames
     for entry in rows:
-        rowInner = User.query.filter_by(user_id=session["user_id"]).first()
+        rowInner = User.query.filter_by(user_id=entry.user_id).first()
         entry.username = rowInner.username
 
     # Sort list in ascending order
-    rowsSorted = sorted(rows, key=operator.itemgetter("score"))
 
-    return render_template("leaderboard.html", rows=rowsSorted)
+    return render_template("leaderboard.html", rows=rows)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -249,7 +248,7 @@ def stats():
     rows = Score.query.filter_by(user_id=session["user_id"]).all()
 
     # Query database for list of all scores
-    rowsAll = Score.query.all()
+    rowsAll = Score.query.order_by(Score.score).all()
 
     # Default value for average score
     if rows == None:
@@ -266,8 +265,7 @@ def stats():
         avgScore = str(round(totalScore / gamesPlayed, 2))
 
         # Calculate rank
-        rowsAllSorted = sorted(rowsAll, key=operator.itemgetter("score"))
-        for entry in rowsAllSorted:
+        for entry in rowsAll:
             rank +=1
             if entry.user_id == session["user_id"]:
                 break
