@@ -32,7 +32,7 @@ Session(app)
 # Configure app to use PostgreSQL database
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://ygptyhmliybvtq:abf67ebf32fcae2c0ac8925e026fd47c1df44294b9a21f5a1bcf18d97bdb1f6e@ec2-176-34-183-20.eu-west-1.compute.amazonaws.com:5432/de9hiv1bu4a0kt"
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://biovfpvqcqotvg:0587d879a9db4eae4891ba617795992657d4055c8538f8022d90df32b6fdb393@ec2-52-18-116-67.eu-west-1.compute.amazonaws.com:5432/d7uqkjb2i54b2t"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
