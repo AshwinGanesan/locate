@@ -91,7 +91,7 @@ def changepwd():
         row = User.query.filter_by(user_id=session["user_id"]).first()
 
         # Check if current password is correct
-        if not check_password_hash(row.pwd_hash, request.form.get("current-password")):
+        if not check_password_hash(row.hash, request.form.get("current-password")):
             return apology("Incorrect password")
 
         # Check if new passwords match
@@ -100,7 +100,7 @@ def changepwd():
 
         # Update password in database
         else:
-            row.pwd_hash = generate_password_hash(request.form.get("new-password"))
+            row.hash = generate_password_hash(request.form.get("new-password"))
             db.session.commit()
 
         # Redirect user to home page
@@ -148,7 +148,7 @@ def login():
         row = User.query.filter_by(username=request.form.get("username")).first()
 
         # Ensure username exists and password is correct
-        if row == None or not check_password_hash(row.pwd_hash, request.form.get("password")):
+        if row == None or not check_password_hash(row.hash, request.form.get("password")):
             return apology("Invalid username or password")
 
         # Remember which user has logged in
