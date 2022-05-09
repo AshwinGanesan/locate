@@ -43,9 +43,9 @@ class User(db.Model):
     username = db.Column(db.String(1024), nullable=False)
     hash = db.Column(db.String(1024), nullable=False)
 
-    def __init__(self, username, pwd_hash):
+    def __init__(self, username, hash):
         self.username = username
-        self.pwd_hash = pwd_hash
+        self.hash = hash
 
 class Score(db.Model):
     __tablename__ = 'score'
