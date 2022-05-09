@@ -38,16 +38,18 @@ migrate = Migrate(app, db)
 
 # Create classes for PostgreSQL database tables
 class User(db.Model):
+    __tablename__ = 'user'
     user_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     username = db.Column(db.String(1024), nullable=False)
-    pwd_hash = db.Column(db.String(1024), nullable=False)
+    hash = db.Column(db.String(1024), nullable=False)
 
     def __init__(self, username, pwd_hash):
         self.username = username
         self.pwd_hash = pwd_hash
 
 class Score(db.Model):
-    score_id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
+    __tablename__ = 'score'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, nullable=False)
     user_id = db.Column(db.Integer, nullable=False)
     score = db.Column(db.String(1024), nullable=False)
 
